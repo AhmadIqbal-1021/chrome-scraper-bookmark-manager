@@ -10,9 +10,19 @@ A Chrome Extension that scrapes active tab data, summarizes pages using Gemini A
 - AI-powered page summarization via Gemini API
 - Interactive chat interface within the extension
 - Browsing history tracking and custom notes
-- Bookmark manager with WhatsApp-style chat UI
 - Light / dark mode toggle
 - User-configurable settings
+
+---
+
+## Screenshots
+
+<img width="575" height="580" alt="image" src="https://github.com/user-attachments/assets/6821b6c8-8ac6-4dbf-a167-a206a2d79175" />
+<img width="575" height="891" alt="image" src="https://github.com/user-attachments/assets/06ee0651-892b-44de-bb7c-ca6e05d4c896" />
+<img width="571" height="690" alt="image" src="https://github.com/user-attachments/assets/dd720242-0be8-4803-a7c3-9fef0dee853e" />
+
+
+
 
 ---
 
@@ -42,8 +52,13 @@ chrome-scraper-bookmark-manager/
 ├── manifest.json
 ├── popup.html
 ├── popup.js
-├── background.js
-└── styles.css
+├── popup.css
+├── content.js
+├── options.html
+├── options.js
+├── options.css
+├── theme.css
+└── icon128x128.png
 ```
 
 ---
@@ -51,4 +66,4 @@ chrome-scraper-bookmark-manager/
 ## Author
 
 **Muhammad Ahmad Iqbal**  
-[GitHub](https://github.com/AhmadIqbal-1021)
+[LinkedIn](www.linkedin.com/in/ahmad-iqbal-961373317) · [GitHub](https://github.com/AhmadIqbal-1021)
