@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Scraper & Bookmarks",
+  "version": "1.0",
+  "description": "Scrape data, manage bookmarks, and get AI summaries!",
+  "options_page": "options.html",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Scraper & Bookmarks",
+    "default_icon": {
+      "16":  "icon16x16.png",
+      "32":  "icon32x32.png",
+      "48":  "icon48x48.png",
+      "128": "icon128x128.png"
+    }
+  },
+  "icons": {
+    "16":  "icon16x16.png",
+    "32":  "icon32x32.png",
+    "48":  "icon48x48.png",
+    "128": "icon128x128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "bookmarks",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}

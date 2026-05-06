@@ -1,0 +1,233 @@
+/* ── PAGE BASE ───────────────────────────────────── */
+/* :root {
+  --bg-main:      #f0f2ff;
+  --bg-card:      #ffffff;
+  --bg-input:     #f8f9ff;
+  --border-color: #e0e4ff;
+  --text-primary: #1e1b4b;
+  --text-secondary: #6b7280;
+  --accent:       #4f46e5;
+  --accent2:      #7c3aed;
+  --shadow:       rgba(79, 70, 229, 0.08);
+}
+
+body.dark {
+  --bg-main:      #0f0f1a;
+  --bg-card:      #1a1a2e;
+  --bg-input:     #16213e;
+  --border-color: #2d2d4e;
+  --text-primary: #e0e0ff;
+  --text-secondary: #9090b0;
+  --accent:       #6366f1;
+  --accent2:      #8b5cf6;
+  --shadow:       rgba(0, 0, 0, 0.4);
+} */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 40px 20px;
+  transition: background 0.3s, color 0.3s;
+}
+
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f0f2ff;
+  color: #1e1b4b;
+  min-height: 100vh;
+  padding: 40px 20px;
+} */
+
+/* ── CONTAINER ───────────────────────────────────── */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 32px;
+}
+
+/* ── SECTION CARDS ───────────────────────────────── */
+.settings-section {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
+}
+
+.settings-section h2 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 8px;
+}
+
+.hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+/* ── INPUT FIELDS ────────────────────────────────── */
+.field-group {
+  margin-bottom: 16px;
+}
+
+.field-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+input[type="password"],
+input[type="text"] {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1.5px solid #e0e4ff;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e1b4b;
+  background: #f8f9ff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input[type="password"]:focus,
+input[type="text"]:focus {
+  border-color: #4f46e5;
+}
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.primary-btn {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.primary-btn:hover {
+  opacity: 0.9;
+}
+
+#btn-toggle-visibility {
+  background: #f0f2ff;
+  border: 1.5px solid #e0e4ff;
+  border-radius: 8px;
+  padding: 0 12px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* ── STATUS MESSAGE ──────────────────────────────── */
+.status-msg {
+  font-size: 13px;
+  color: #059669;
+  margin-top: 10px;
+  min-height: 20px;
+  font-weight: 600;
+}
+
+/* ── TOGGLE ROWS ─────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.toggle-row:last-of-type {
+  border-bottom: none;
+}
+
+.toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggle-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e1b4b;
+}
+
+.toggle-desc {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ── iOS-STYLE TOGGLE SWITCH ─────────────────────── */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1d5db;
+  border-radius: 26px;
+  transition: background-color 0.3s;
+}
+
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.switch input:checked + .slider {
+  background-color: #4f46e5;
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(22px);
+}

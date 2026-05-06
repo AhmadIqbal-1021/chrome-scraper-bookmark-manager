@@ -1,0 +1,429 @@
+/* ── CSS VARIABLES (Light Theme defaults) ─────────────────────────────── */
+/* :root {
+  --bg-main:        #f0f2ff;
+  --bg-card:        #ffffff;
+  --bg-input:       #f8f9ff;
+  --bg-result:      #f8f9ff;
+  --bg-hover:       #f0f2ff;
+  --border-color:   #e0e4ff;
+  --text-primary:   #1e1b4b;
+  --text-secondary: #6b7280;
+  --text-link:      #4f46e5;
+  --accent:         #4f46e5;
+  --accent2:        #7c3aed;
+  --tab-active-bg:  #ffffff;
+  --tab-text:       #6b7280;
+  --placeholder:    #9ca3af;
+  --shadow:         rgba(79, 70, 229, 0.10);
+  --note-bg:        #ecfdf5;
+  --note-color:     #059669;
+  --danger:         #dc2626;
+  --danger-bg:      #fef2f2;
+}
+
+/* ── DARK THEME: same variable names, different values ────────────────── */
+/* body.dark {
+  --bg-main:        #0f0f1a;
+  --bg-card:        #1a1a2e;
+  --bg-input:       #16213e;
+  --bg-result:      #16213e;
+  --bg-hover:       #1a1a2e;
+  --border-color:   #2d2d4e;
+  --text-primary:   #e0e0ff;
+  --text-secondary: #9090b0;
+  --text-link:      #818cf8;
+  --accent:         #6366f1;
+  --accent2:        #8b5cf6;
+  --tab-active-bg:  #1a1a2e;
+  --tab-text:       #9090b0;
+  --placeholder:    #555577;
+  --shadow:         rgba(0, 0, 0, 0.4);
+  --note-bg:        #064e3b;
+  --note-color:     #34d399;
+  --danger:         #f87171;
+  --danger-bg:      #450a0a;
+}  */
+
+/* ── RESET ────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BODY ─────────────────────────────────────────────────────────────── */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  width: 380px;
+  min-height: 200px;
+  background: var(--bg-main);       /* was hardcoded #f0f2ff */
+  color: var(--text-primary);       /* was hardcoded #1e1b4b */
+  padding-bottom: 10px;
+  transition: background 0.3s, color 0.3s;  /* smooth fade between themes */
+  max-width: 380px;    /* ADD THIS — hard cap, nothing can exceed it */
+  overflow-x: hidden;  /* ADD THIS — silently clips any horizontal overflow */
+}
+
+/* ── HEADER ───────────────────────────────────────────────────────────── */
+h1 {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  padding: 16px 16px 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── TABS ─────────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 10px;
+  border-bottom: 1.5px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 7px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tab-text);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-btn.active {
+  background: var(--tab-active-bg);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.tab-btn:hover:not(.active) {
+  background: var(--bg-hover);
+}
+
+/* ── SECTIONS ─────────────────────────────────────────────────────────── */
+.section {
+  padding: 14px 14px 8px;
+  animation: fadeIn 0.2s ease;
+    overflow: hidden;   /* ADD THIS — clips anything that tries to escape */
+  width: 100%;        /* ADD THIS — section respects its parent width */
+  box-sizing: border-box;
+}
+
+.hidden { display: none !important; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ── HINT TEXT ────────────────────────────────────────────────────────── */
+.hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* ── BUTTON GROUP ─────────────────────────────────────────────────────── */
+.button-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.button-group button {
+  padding: 9px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.button-group button:hover  { opacity: 0.88; }
+.button-group button:active { transform: scale(0.97); }
+
+/* ── RESULTS BOX ──────────────────────────────────────────────────────── */
+#results-box {
+  background: var(--bg-result);
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.result-item {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-color);
+  word-break: break-all;
+  line-height: 1.5;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.result-item:last-child { border-bottom: none; }
+
+.placeholder {
+  color: var(--placeholder);
+  font-size: 12px;
+  text-align: center;
+  padding: 10px 0;
+}
+
+/* ── EXPORT ROW ───────────────────────────────────────────────────────── */
+.export-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.export-btn {
+  flex: 1;
+  padding: 7px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  color: white;
+}
+
+.export-btn.csv  { background: #059669; }
+.export-btn.json { background: #d97706; }
+.export-btn.html { background: #2563eb; }
+.export-btn:hover { opacity: 0.85; }
+
+/* ── SECONDARY BUTTON ─────────────────────────────────────────────────── */
+.secondary-btn {
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── INPUTS ───────────────────────────────────────────────────────────── */
+input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 6px;
+}
+
+input[type="text"]:focus { border-color: var(--accent); }
+
+textarea {
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+textarea:focus { border-color: var(--accent) !important; outline: none; }
+
+/* ── ADD BOOKMARK BOX ─────────────────────────────────────────────────── */
+.add-bookmark-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.add-bookmark-box button {
+  padding: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.add-bookmark-box button:hover { opacity: 0.88; }
+
+/* ── SEARCH BOX ───────────────────────────────────────────────────────── */
+.search-box { margin-bottom: 8px; }
+
+/* ── BOOKMARK LIST ────────────────────────────────────────────────────── */
+#bookmark-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 6px;
+  margin-bottom: 8px;
+  background: var(--bg-result);
+}
+
+.bookmark-folder {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 6px 4px 2px;
+  letter-spacing: 0.03em;
+}
+
+.bookmark-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.bookmark-item:hover { background: var(--bg-hover); }
+
+.bookmark-link {
+  font-size: 12px;
+  color: var(--text-link);
+  cursor: pointer;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bookmark-link:hover { text-decoration: underline; }
+
+.bookmark-delete {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.bookmark-delete:hover { color: var(--danger); background: var(--danger-bg); }
+
+.bm-export-row { display: flex; gap: 6px; margin-bottom: 8px; }
+
+.bookmark-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── STATUS MESSAGE ───────────────────────────────────────────────────── */
+.status-msg {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
+.status-msg.success { background: var(--note-bg); color: var(--note-color); }
+.status-msg.error   { background: var(--danger-bg); color: var(--danger); }
+
+/* ── AI SECTION ───────────────────────────────────────────────────────── */
+#ai-results-box {
+  background: var(--bg-result);
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  max-width: 88%;
+  gap: 3px;
+}
+
+.user-message { align-self: flex-end; }
+.ai-message   { align-self: flex-start; }
+
+.message-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.user-message .message-label { text-align: right; }
+
+.chat-message p {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.user-message p {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border-bottom-right-radius: 3px;
+}
+
+.ai-message p {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-bottom-left-radius: 3px;
+}
+
+/* ── HISTORY SECTION ──────────────────────────────────────────────────── */
+#history-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+/* ── DARK MODE TOGGLE BUTTON ──────────────────────────────────────────── */
+#btn-dark-mode {
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-color);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+#btn-dark-mode:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
