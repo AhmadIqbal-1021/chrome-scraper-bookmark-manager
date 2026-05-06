@@ -21,7 +21,7 @@ A Chrome Extension that scrapes active tab data, summarizes pages using Gemini A
 
 <img src="https://github.com/user-attachments/assets/6821b6c8-8ac6-4dbf-a167-a206a2d79175" width="250"/>
 <img src="https://github.com/user-attachments/assets/06ee0651-892b-44de-bb7c-ca6e05d4c896" width="250"/>
-<img src="[your-image-url](https://github.com/user-attachments/assets/dd720242-0be8-4803-a7c3-9fef0dee853e)" width="250"/>
+<img src="https://github.com/user-attachments/assets/dd720242-0be8-4803-a7c3-9fef0dee853e" width="250"/>
 
 
 ---
