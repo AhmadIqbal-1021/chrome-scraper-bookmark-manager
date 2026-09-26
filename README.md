@@ -1,28 +1,39 @@
 # Chrome Scraper & Bookmark Manager
 
-A Chrome Extension that scrapes active tab data, summarizes pages using Gemini AI, and manages bookmarks — all from your browser toolbar.
+A Chrome Extension that scrapes active tab data, summarizes pages using Gemini AI, and manages bookmarks — all from your browser toolbar, wrapped in a premium dark-navy UI.
 
 ---
 
 ## Features
 
-- Scrapes active tab content and exports to CSV and HTML formats
-- AI-powered page summarization via Gemini API
-- Interactive chat interface within the extension
-- Browsing history tracking and custom notes
-- Light / dark mode toggle
-- User-configurable settings
+- 🕷️ **Web Scraper** — grab the page title, links, headings or images, plus a one-click 📊 Page Stats summary card (word/image/link/heading counts) and a 🔄 Re-scrape shortcut. Exports to CSV, JSON or HTML.
+- 🔖 **Bookmarks Manager** — view, add, search and delete bookmarks, with a live bookmark/folder count and an Enter-to-add shortcut. Exports to HTML or JSON.
+- 🤖 **AI Assistant** — summarizes the current page or answers questions about it via the Gemini API, with full chat history, a page-context word counter, 📋 copy-last-response, and 🔁 regenerate.
+- 🕘 **History & Notes** — auto-saves scrape history per page with a searchable, exportable list and a sticky-note-style textarea for personal notes.
+- ⚙️ **Settings page** — manage your Gemini API key and toggle any feature on/off.
+- Sidebar navigation, glassmorphism cards, and a light/dark theme toggle (🌙/☀️) — the popup remembers whichever tab and theme you last used.
 
 ---
 
 ## Screenshots
 
-## Screenshots
-
-<img src="https://github.com/user-attachments/assets/6821b6c8-8ac6-4dbf-a167-a206a2d79175" width="250"/>
-<img src="https://github.com/user-attachments/assets/06ee0651-892b-44de-bb7c-ca6e05d4c896" width="250"/>
-<img src="https://github.com/user-attachments/assets/dd720242-0be8-4803-a7c3-9fef0dee853e" width="250"/>
-
+<table>
+<tr>
+<td><img src="screenshots/popup-scraper.png" width="260"/><br/><sub>Scraper</sub></td>
+<td><img src="screenshots/popup-scraper-links.png" width="260"/><br/><sub>Scraped links (clickable)</sub></td>
+<td><img src="screenshots/popup-page-stats.png" width="260"/><br/><sub>📊 Page Stats</sub></td>
+</tr>
+<tr>
+<td><img src="screenshots/popup-bookmarks.png" width="260"/><br/><sub>Bookmarks</sub></td>
+<td><img src="screenshots/popup-ai-chat.png" width="260"/><br/><sub>AI chat</sub></td>
+<td><img src="screenshots/popup-history.png" width="260"/><br/><sub>History &amp; notes</sub></td>
+</tr>
+<tr>
+<td><img src="screenshots/popup-dark-mode.png" width="260"/><br/><sub>Dark mode</sub></td>
+<td><img src="screenshots/options-settings.png" width="260"/><br/><sub>Settings</sub></td>
+<td></td>
+</tr>
+</table>
 
 ---
 
@@ -58,8 +69,12 @@ chrome-scraper-bookmark-manager/
 ├── options.js
 ├── options.css
 ├── theme.css
+├── tests.js
+├── screenshots/
 └── icon128x128.png
 ```
+
+Run the test suite by opening the popup, right-clicking it → **Inspect**, and pasting the contents of `tests.js` into the Console tab.
 
 ---
 

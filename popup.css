@@ -354,14 +354,6 @@ input[type="text"]:focus {
   box-shadow: 0 0 0 3px var(--shadow);
 }
 
-textarea {
-  background: var(--bg-input) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-color) !important;
-}
-
-textarea:focus { border-color: var(--accent) !important; outline: none; }
-
 /* ── ADD BOOKMARK / ACTION BOX ────────────────────────────────────────── */
 .add-bookmark-box {
   display: flex;
