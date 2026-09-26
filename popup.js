@@ -6,6 +6,62 @@ document.addEventListener("DOMContentLoaded", function () {
   let lastScrapedData = [];
   let lastScrapedAction = "";
 
+  // ══════════════════════════════════════════════
+  //   TOAST NOTIFICATIONS (Task 3E)
+  //   A tiny "✅ copied!" style message that fades out on its own.
+  //   Any feature can call showToast("message") to use it.
+  // ══════════════════════════════════════════════
+  function showToast(message) {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(function () { toast.remove(); }, 2000);
+  }
+
+  // ══════════════════════════════════════════════
+  //   HISTORY TAB COUNT BADGE (Task 3D)
+  // ══════════════════════════════════════════════
+  function updateHistoryCountBadge() {
+    chrome.storage.local.get(null, function (allData) {
+      const count = Object.keys(allData).filter(function (key) {
+        return key.startsWith("history:");
+      }).length;
+      const badge = document.getElementById("history-count-badge");
+      if (badge) badge.textContent = count > 0 ? String(count) : "";
+    });
+  }
+  updateHistoryCountBadge();
+
+  // ══════════════════════════════════════════════
+  //   ESCAPE KEY — close any open result (Task 3E)
+  // ══════════════════════════════════════════════
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      resetScraperResults();
+    }
+  });
+
+  // Hides/shows each tab + section based on the feature toggle flags saved
+  // in Settings. Pulled into its own function (it used to be four copy-pasted
+  // if-blocks) so it's one rule instead of four, and so tests.js can call it
+  // directly with fake flags instead of relying on real chrome.storage.sync.
+  function applyFeatureVisibility(flags) {
+    const featureMap = {
+      scraperEnabled:   ["tab-scraper", "section-scraper"],
+      bookmarksEnabled: ["tab-bookmarks", "section-bookmarks"],
+      aiEnabled:        ["tab-ai", "section-ai"],
+      historyEnabled:   ["tab-history", "section-history"]
+    };
+    Object.keys(featureMap).forEach(function (flagName) {
+      const isOn = flags[flagName] ?? true;
+      const ids  = featureMap[flagName];
+      document.getElementById(ids[0]).style.display = isOn ? "" : "none";
+      document.getElementById(ids[1]).style.display = isOn ? "" : "none";
+    });
+  }
 
         //===========================
         //================================================== DARK MODE TOGGLE
@@ -22,7 +78,8 @@ chrome.storage.local.get("darkMode", function (result) {
   // If it's true, add the "dark" class to body
   if (result.darkMode === true) {
     document.body.classList.add("dark");
-    document.getElementById("btn-dark-mode").textContent = "☀️ Light";
+    // Icon-only label (Task 1 redesigned this into a small sidebar icon button)
+    document.getElementById("btn-dark-mode").textContent = "☀️";
   }
 });
 
@@ -31,8 +88,8 @@ document.getElementById("btn-dark-mode").addEventListener("click", function () {
   const isDark = document.body.classList.toggle("dark");
   // isDark is the NEW state — true if we just turned dark ON, false if we turned it OFF
 
-  // Update button label to reflect the opposite action
-  this.textContent = isDark ? "☀️ Light" : "🌙 Dark";
+  // Update button icon to reflect the opposite action
+  this.textContent = isDark ? "☀️" : "🌙";
 
   // Save the preference so it persists after popup closes
   chrome.storage.local.set({ darkMode: isDark });
@@ -62,25 +119,12 @@ chrome.storage.sync.get(
     const historyOn   = result.historyEnabled   ?? true;
 
     // If a feature is OFF — hide its tab button AND its section
-    if (!scraperOn) {
-      document.getElementById("tab-scraper").style.display   = "none";
-      document.getElementById("section-scraper").style.display = "none";
-    }
-
-    if (!bookmarksOn) {
-      document.getElementById("tab-bookmarks").style.display   = "none";
-      document.getElementById("section-bookmarks").style.display = "none";
-    }
-
-    if (!aiOn) {
-      document.getElementById("tab-ai").style.display   = "none";
-      document.getElementById("section-ai").style.display = "none";
-    }
-
-    if (!historyOn) {
-      document.getElementById("tab-history").style.display     = "none";
-      document.getElementById("section-history").style.display = "none";
-    }
+    applyFeatureVisibility({
+      scraperEnabled:   scraperOn,
+      bookmarksEnabled: bookmarksOn,
+      aiEnabled:        aiOn,
+      historyEnabled:   historyOn
+    });
 
     // ── SMART DEFAULT: activate the first VISIBLE tab ──────
     // If scraper is disabled, we can't leave it as the default active tab.
@@ -93,26 +137,71 @@ chrome.storage.sync.get(
     tabIds.forEach(id => document.getElementById(id).classList.remove("active"));
     secIds.forEach(id => document.getElementById(id).classList.add("hidden"));
 
-    // Then find the first tab that's still visible and activate it
-    for (let i = 0; i < tabIds.length; i++) {
-      const tab = document.getElementById(tabIds[i]);
-      const sec = document.getElementById(secIds[i]);
+    // ── REMEMBER LAST ACTIVE TAB (Task 3E) ────────────────────
+    // If the user had a tab open when they last closed the popup,
+    // reopen on that same tab instead of always defaulting to Scraper.
+    chrome.storage.local.get("lastActiveTab", function (saved) {
+      let activated = false;
+      const preferred = saved.lastActiveTab;
 
-      if (tab.style.display !== "none") {
-        tab.classList.add("active");      // highlight the tab button
-        sec.classList.remove("hidden");   // show its section
-        break;                            // stop after the first visible one
+      if (preferred) {
+        const idx = tabIds.indexOf(preferred);
+        if (idx !== -1) {
+          const tab = document.getElementById(tabIds[idx]);
+          const sec = document.getElementById(secIds[idx]);
+          if (tab.style.display !== "none") {
+            tab.classList.add("active");
+            sec.classList.remove("hidden");
+            activated = true;
+          }
+        }
       }
-    }
+
+      // Fall back to the first visible tab if there's no saved tab,
+      // or the saved tab is no longer visible (its feature got disabled)
+      if (!activated) {
+        for (let i = 0; i < tabIds.length; i++) {
+          const tab = document.getElementById(tabIds[i]);
+          const sec = document.getElementById(secIds[i]);
+
+          if (tab.style.display !== "none") {
+            tab.classList.add("active");      // highlight the tab button
+            sec.classList.remove("hidden");   // show its section
+            break;                            // stop after the first visible one
+          }
+        }
+      }
+
+      // Load the content for whichever tab ended up active, since we
+      // didn't get here via a click (so the click handlers never ran).
+      if (document.getElementById("tab-bookmarks").classList.contains("active")) {
+        loadBookmarks();
+      }
+      if (document.getElementById("tab-history").classList.contains("active")) {
+        loadHistory();
+        loadNoteForCurrentPage();
+      }
+      if (document.getElementById("tab-ai").classList.contains("active")) {
+        chrome.storage.sync.get("geminiApiKey", function (r) {
+          document.getElementById("ai-no-key-warning").style.display = r.geminiApiKey ? "none" : "block";
+        });
+      }
+    });
 
     // Edge case: if ALL features are disabled, show a friendly message
+    // Bug fix: this used to look for ".tabs", a class that only existed in
+    // the old top-tabs layout. The new sidebar layout uses ".app-shell", so
+    // the old selector returned null and calling .style.display on it would
+    // throw an error, silently breaking the popup for anyone with every
+    // feature toggled off.
     const allOff = !scraperOn && !bookmarksOn && !aiOn && !historyOn;
     if (allOff) {
-      document.querySelector(".tabs").style.display = "none";
+      const shell = document.querySelector(".app-shell");
+      shell.style.display = "none";
       const msg = document.createElement("p");
-      msg.style.cssText = "text-align:center; color:#6b7280; font-size:13px; padding:20px;";
+      msg.style.cssText = "text-align:center; color:var(--text-secondary); font-size:13px; padding:20px;";
       msg.textContent = "All features are disabled. Open ⚙️ Settings to turn them back on.";
-      document.querySelector(".tabs").insertAdjacentElement("afterend", msg);
+      shell.insertAdjacentElement("afterend", msg);
     }
 
   }
@@ -150,6 +239,7 @@ chrome.storage.sync.get(
     tabAI.classList.remove("active");
      document.getElementById("section-history").classList.add("hidden");
      document.getElementById("tab-history").classList.remove("active");
+     chrome.storage.local.set({ lastActiveTab: "tab-scraper" });
   });
 
   tabBookmarks.addEventListener("click", function () {
@@ -161,11 +251,12 @@ chrome.storage.sync.get(
     tabAI.classList.remove("active");
     document.getElementById("section-history").classList.add("hidden");
     document.getElementById("tab-history").classList.remove("active");
-    
+    chrome.storage.local.set({ lastActiveTab: "tab-bookmarks" });
+
     loadBookmarks();
   });
 
-   // history tab click handler 
+   // history tab click handler
 
                         document.getElementById("tab-history").addEventListener("click", function () {
                           document.getElementById("section-history").classList.remove("hidden");
@@ -174,23 +265,11 @@ chrome.storage.sync.get(
                           document.getElementById("section-ai").classList.add("hidden");
                           document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
                           document.getElementById("tab-history").classList.add("active");
+                          chrome.storage.local.set({ lastActiveTab: "tab-history" });
 
                           loadHistory();
                           loadNoteForCurrentPage();
                         });
-
-//   document.getElementById("tab-ai").addEventListener("click", function () {
-//   // Hide all sections
-//   document.getElementById("section-scraper").classList.add("hidden");
-//   document.getElementById("section-bookmarks").classList.add("hidden");
-//   document.getElementById("section-ai").classList.remove("hidden");
-
-//   // Update active tab button
-//   document.querySelectorAll(".tab-btn").forEach(function (btn) {
-//     btn.classList.remove("active");
-//   });
-//   document.getElementById("tab-ai").classList.add("active");
-//  });
 
 
   // ══════════════════════════════════════════════
@@ -199,6 +278,18 @@ chrome.storage.sync.get(
 
   const resultsBox = document.getElementById("results-box");
   const exportRow  = document.getElementById("export-row");
+
+  // Pages the scraper refuses to touch (Chrome blocks content-script
+  // injection into these anyway). Pulled into its own function so both
+  // scrapeData() and scrapePageStats() share one definition, and so the
+  // test suite can verify this edge case directly.
+  function isRestrictedUrl(url) {
+    url = url || "";
+    return url.startsWith("chrome://") ||
+           url.startsWith("chrome-extension://") ||
+           url.startsWith("https://chrome.google.com");
+  }
+
   function scrapeData(action) {
     resultsBox.innerHTML = "<p class='placeholder'>⏳ Scraping...</p>";
     exportRow.style.display = "none";
@@ -213,11 +304,7 @@ chrome.storage.sync.get(
       const tabId  = tabs[0].id;
       const tabUrl = tabs[0].url || "";
 
-      if (
-        tabUrl.startsWith("chrome://") ||
-        tabUrl.startsWith("chrome-extension://") ||
-        tabUrl.startsWith("https://chrome.google.com")
-      ) {
+      if (isRestrictedUrl(tabUrl)) {
         showScraperError("❌ Can't scrape Chrome pages.\n\nVisit a normal website first.");
         return;
       }
@@ -252,6 +339,7 @@ chrome.storage.sync.get(
                 lastScrapedAction = action;
                 displayScraperResults(response.data);
                 exportRow.style.display = "flex";
+                document.getElementById("rescrape-row").style.display = "flex";
                 saveToHistory(tabs[0].url, tabs[0].title, action, response.data);
               } else {
                 resultsBox.innerHTML = "<p class='placeholder'>⚠️ Nothing found.</p>";
@@ -265,75 +353,11 @@ chrome.storage.sync.get(
   }
 
 
-  // function scrapeData(action) {
-  //   resultsBox.innerHTML = "<p class='placeholder'>⏳ Scraping...</p>";
-  //   exportRow.style.display = "none"; // Hide export until we have data
-  //   lastScrapedData = [];
-
-  //   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-  //     if (!tabs || tabs.length === 0) {
-  //       showScraperError("Could not find active tab.");
-  //       return;
-  //     }
-
-  //     const tabId  = tabs[0].id;
-  //     const tabUrl = tabs[0].url || "";
-
-  //     if (
-  //       tabUrl.startsWith("chrome://") ||
-  //       tabUrl.startsWith("chrome-extension://") ||
-  //       tabUrl.startsWith("https://chrome.google.com")
-  //     ) {
-  //       showScraperError("❌ Can't scrape Chrome pages.\n\nVisit a normal website first.");
-  //       return;
-  //     }
-
-  //     chrome.tabs.sendMessage(tabId, { action: action }, function (response) {
-  //       if (chrome.runtime.lastError) {
-  //         showScraperError("❌ " + chrome.runtime.lastError.message);
-  //         return;
-  //       }
-
-  //       if (response && response.data && response.data.length > 0) {
-  //         lastScrapedData   = response.data;  // Save for export
-  //         lastScrapedAction = action;          // Save action name for filename
-  //         displayScraperResults(response.data);
-  //         exportRow.style.display = "flex";   // Show export buttons
-  //       } else {
-  //         resultsBox.innerHTML = "<p class='placeholder'>⚠️ Nothing found.</p>";
-  //       }
-  //     });
-  //   });
-  // }
-
-
-    //==================================== old display scraper function 
-
-    //====================================
-
-  // function displayScraperResults(dataArray) {
-  //   resultsBox.innerHTML = "";
-  //   const count = document.createElement("p");
-  //   count.style.cssText = "font-size:11px; color:#888; margin-bottom:6px;";
-  //   count.textContent = "✅ Found " + dataArray.length + " result(s):";
-  //   resultsBox.appendChild(count);
-
-  //   dataArray.forEach(function (item) {
-  //     const div = document.createElement("div");
-  //     div.className = "result-item";
-  //     div.textContent = item;
-  //     resultsBox.appendChild(div);
-  //   });
-  // }
-  
-  //============================================= NEW SCRAPPER RESULT DISPLAY WITH LINK CLICK OPTION
-
-
   function displayScraperResults(dataArray) {
   resultsBox.innerHTML = "";
 
   const count = document.createElement("p");
-  count.style.cssText = "font-size:11px; color:#888; margin-bottom:6px;";
+  count.style.cssText = "font-size:11px; color:var(--text-secondary); margin-bottom:6px;";
   count.textContent = "✅ Found " + dataArray.length + " result(s):";
   resultsBox.appendChild(count);
 
@@ -455,10 +479,117 @@ chrome.storage.sync.get(
     scrapeData("scrape-images");
   });
 
-  document.getElementById("clear-results").addEventListener("click", function () {
+  // Shared reset used by both the "Clear Results" button and the
+  // Escape key shortcut (Task 3E), so they stay perfectly in sync.
+  function resetScraperResults() {
     resultsBox.innerHTML = "<p class='placeholder'>Results will appear here...</p>";
     exportRow.style.display = "none";
+    document.getElementById("rescrape-row").style.display = "none";
     lastScrapedData = [];
+    lastScrapedAction = "";
+  }
+
+  document.getElementById("clear-results").addEventListener("click", function () {
+    resetScraperResults();
+  });
+
+  // ══════════════════════════════════════════════
+  //   📊 PAGE STATS (Task 3A)
+  // ══════════════════════════════════════════════
+  function scrapePageStats() {
+    resultsBox.innerHTML = "<p class='placeholder'>⏳ Scraping...</p>";
+    exportRow.style.display = "none";
+    document.getElementById("rescrape-row").style.display = "none";
+
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (!tabs || tabs.length === 0) {
+        showScraperError("Could not find active tab.");
+        return;
+      }
+
+      const tabId  = tabs[0].id;
+      const tabUrl = tabs[0].url || "";
+
+      if (isRestrictedUrl(tabUrl)) {
+        showScraperError("❌ Can't scrape Chrome pages.\n\nVisit a normal website first.");
+        return;
+      }
+
+      chrome.scripting.executeScript(
+        { target: { tabId: tabId }, files: ["content.js"] },
+        function () {
+          if (chrome.runtime.lastError) {
+            showScraperError("❌ Injection failed: " + chrome.runtime.lastError.message);
+            return;
+          }
+
+          setTimeout(function () {
+            chrome.tabs.sendMessage(tabId, { action: "scrape-stats" }, function (response) {
+              if (chrome.runtime.lastError) {
+                showScraperError("❌ " + chrome.runtime.lastError.message);
+                return;
+              }
+              if (!response || !response.data) {
+                resultsBox.innerHTML = "<p class='placeholder'>⚠️ Nothing found.</p>";
+                return;
+              }
+
+              lastScrapedAction = "scrape-stats";
+              displayPageStats(response.data);
+              document.getElementById("rescrape-row").style.display = "flex";
+            });
+          }, 50);
+        }
+      );
+    });
+  }
+
+  function displayPageStats(stats) {
+    resultsBox.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "stats-summary-grid";
+
+    const tiles = [
+      { label: "📝 Words",    value: stats.words },
+      { label: "🖼️ Images",   value: stats.images },
+      { label: "🔗 Links",    value: stats.links },
+      { label: "📌 Headings", value: stats.headings }
+    ];
+
+    tiles.forEach(function (t) {
+      const tile = document.createElement("div");
+      tile.className = "stat-tile";
+
+      const val = document.createElement("div");
+      val.className = "stat-value";
+      val.textContent = t.value;
+
+      const lab = document.createElement("div");
+      lab.className = "stat-label";
+      lab.textContent = t.label;
+
+      tile.appendChild(val);
+      tile.appendChild(lab);
+      grid.appendChild(tile);
+    });
+
+    resultsBox.appendChild(grid);
+  }
+
+  document.getElementById("scrape-stats").addEventListener("click", function () {
+    scrapePageStats();
+  });
+
+  // ══════════════════════════════════════════════
+  //   🔄 RE-SCRAPE (Task 3A) — repeats the last action instantly
+  // ══════════════════════════════════════════════
+  document.getElementById("re-scrape-btn").addEventListener("click", function () {
+    if (!lastScrapedAction) return;
+    if (lastScrapedAction === "scrape-stats") {
+      scrapePageStats();
+    } else {
+      scrapeData(lastScrapedAction);
+    }
   });
 
 
@@ -470,6 +601,18 @@ chrome.storage.sync.get(
   // content = the text content of the file
   // filename = what to name the downloaded file
   // mimeType = the file type (text/csv or application/json)
+  // Bug fix: the HTML export functions below used to insert scraped text /
+  // bookmark titles straight into the HTML string. A page title containing
+  // "<" or "&" would corrupt the exported file (or, worse, embed a working
+  // <script> tag that runs when the file is opened). Escaping fixes that.
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   function downloadFile(content, filename, mimeType) {
 
     // Create a "Blob" — a chunk of data treated as a file
@@ -488,61 +631,68 @@ chrome.storage.sync.get(
     URL.revokeObjectURL(url);
   }
 
-  // Export as CSV (comma-separated values — opens in Excel/Sheets)
-  document.getElementById("export-csv").addEventListener("click", function () {
-    if (lastScrapedData.length === 0) return;
-
+  // These builder functions are pulled out of the click handlers so the
+  // test suite (tests.js) can call the exact same code the app uses,
+  // instead of a guessed re-implementation.
+  function buildCsvExport(dataArray) {
     // CSV format: first row is the header, then one item per row
     // We wrap each value in quotes to handle commas inside values
     const header = "data\n";
-    const rows   = lastScrapedData
+    const rows   = dataArray
       .map(function (item) {
         // Escape any quotes inside the value by doubling them
         return '"' + item.replace(/"/g, '""') + '"';
       })
       .join("\n");
+    return header + rows;
+  }
 
-    const csvContent = header + rows;
-    const filename   = lastScrapedAction + "-" + Date.now() + ".csv";
+  function buildScrapedHtmlExport(dataArray) {
+    let html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Exported Data</title>";
+    html += "<style>body{font-family:sans-serif;padding:20px;}h1{color:#333;}ul{list-style-type:none;padding:0;}li{background:#f0f0f0;margin:5px 0;padding:10px;border-radius:4px;}</style>";
+    html += "</head><body>";
+    html += "<h1>Exported Data (" + dataArray.length + " items)</h1><ul>";
+    dataArray.forEach(function (item) {
+      html += "<li>" + escapeHtml(item) + "</li>";
+    });
+    html += "</ul></body></html>";
+    return html;
+  }
 
+  function buildJsonExport(dataArray, action) {
+    // Build a nice object with metadata
+    const exportObj = {
+      exportedAt: new Date().toISOString(), // current date/time
+      action:     action,
+      count:      dataArray.length,
+      data:       dataArray
+    };
+    // JSON.stringify converts JS object → JSON string
+    // The '2' means indent with 2 spaces (pretty print)
+    return JSON.stringify(exportObj, null, 2);
+  }
+
+  // Export as CSV (comma-separated values — opens in Excel/Sheets)
+  document.getElementById("export-csv").addEventListener("click", function () {
+    if (lastScrapedData.length === 0) return;
+    const csvContent = buildCsvExport(lastScrapedData);
+    const filename    = lastScrapedAction + "-" + Date.now() + ".csv";
     downloadFile(csvContent, filename, "text/csv");
   });
 
   // Export as HTML (a simple webpage showing the results in list form)
   document.getElementById("export-html").addEventListener("click", function () {
     if (lastScrapedData.length === 0) return;
-    let html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Exported Data</title>";
-    html += "<style>body{font-family:sans-serif;padding:20px;}h1{color:#333;}ul{list-style-type:none;padding:0;}li{background:#f0f0f0;margin:5px 0;padding:10px;border-radius:4px;}</style>";
-    html += "</head><body>";
-    html += "<h1>Exported Data (" + lastScrapedData.length + " items)</h1><ul>";
-    lastScrapedData.forEach(function (item) {
-      html += "<li>" + item + "</li>";
-    });
-    html += "</ul></body></html>";  
+    const html     = buildScrapedHtmlExport(lastScrapedData);
     const filename = lastScrapedAction + "-" + Date.now() + ".html";
     downloadFile(html, filename, "text/html");
-  }
-    );
-
-
+  });
 
   // Export as JSON (structured data — useful for developers)
   document.getElementById("export-json").addEventListener("click", function () {
     if (lastScrapedData.length === 0) return;
-
-    // Build a nice object with metadata
-    const exportObj = {
-      exportedAt: new Date().toISOString(), // current date/time
-      action:     lastScrapedAction,
-      count:      lastScrapedData.length,
-      data:       lastScrapedData
-    };
-
-    // JSON.stringify converts JS object → JSON string
-    // The '2' means indent with 2 spaces (pretty print)
-    const jsonContent = JSON.stringify(exportObj, null, 2);
+    const jsonContent = buildJsonExport(lastScrapedData, lastScrapedAction);
     const filename    = lastScrapedAction + "-" + Date.now() + ".json";
-
     downloadFile(jsonContent, filename, "application/json");
   });
 
@@ -554,33 +704,45 @@ chrome.storage.sync.get(
   const bookmarkList = document.getElementById("bookmark-list");
   const searchInput  = document.getElementById("search-input");
 
+  // Recursively turns Chrome's nested bookmark tree into a flat array of
+  // { id, title, url, folder } objects. Pulled out to its own top-level
+  // function (it used to be defined inline inside loadBookmarks) so the
+  // test suite can call it directly with fake tree data.
+  function flattenBookmarkTree(nodes, folderPath) {
+    const result = [];
+    (nodes || []).forEach(function (node) {
+      if (node.url) {
+        result.push({
+          id:     node.id,
+          title:  node.title || "Untitled",
+          url:    node.url,
+          folder: folderPath
+        });
+      } else if (node.children) {
+        const thisFolderName = node.title || "Folder";
+        const newPath = folderPath === ""
+          ? thisFolderName
+          : folderPath + " > " + thisFolderName;
+        result.push.apply(result, flattenBookmarkTree(node.children, newPath));
+      }
+    });
+    return result;
+  }
+
   function loadBookmarks() {
     bookmarkList.innerHTML = "<p class='placeholder'>⏳ Loading...</p>";
 
     chrome.bookmarks.getTree(function (treeNodes) {
       bookmarkList.innerHTML = "";
-      const allBookmarks = [];
+      const allBookmarks = flattenBookmarkTree(treeNodes[0].children, "");
 
-      function flattenTree(nodes, folderPath) {
-        nodes.forEach(function (node) {
-          if (node.url) {
-            allBookmarks.push({
-              id:     node.id,
-              title:  node.title || "Untitled",
-              url:    node.url,
-              folder: folderPath
-            });
-          } else if (node.children) {
-            const thisFolderName = node.title || "Folder";
-            const newPath = folderPath === ""
-              ? thisFolderName
-              : folderPath + " > " + thisFolderName;
-            flattenTree(node.children, newPath);
-          }
-        });
-      }
-
-      flattenTree(treeNodes[0].children, "");
+      // ── 📊 STATS LINE (Task 3B) — total bookmarks + folder count ──
+      const folderCount = new Set(allBookmarks.map(function (bm) { return bm.folder; })).size;
+      const statsEl = document.getElementById("bookmark-stats");
+      statsEl.textContent = allBookmarks.length === 0
+        ? ""
+        : "📊 " + allBookmarks.length + " bookmark" + (allBookmarks.length === 1 ? "" : "s") +
+          " in " + folderCount + " folder" + (folderCount === 1 ? "" : "s");
 
       if (allBookmarks.length === 0) {
         bookmarkList.innerHTML = "<p class='placeholder'>No bookmarks found.</p>";
@@ -635,6 +797,13 @@ chrome.storage.sync.get(
     });
   }
 
+  // Task 3B — pressing Enter in the title input adds the bookmark too
+  document.getElementById("bookmark-title-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      document.getElementById("btn-add-bookmark").click();
+    }
+  });
+
   document.getElementById("btn-add-bookmark").addEventListener("click", function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       if (!tabs || tabs.length === 0) return;
@@ -672,15 +841,20 @@ chrome.storage.sync.get(
     });
   }
 
-  searchInput.addEventListener("input", function () {
-    const query = searchInput.value.toLowerCase().trim();
-    const all   = bookmarkList._allBookmarks || [];
-    if (query === "") { renderBookmarkList(all); return; }
-    const filtered = all.filter(function (bm) {
-      return bm.title.toLowerCase().includes(query) ||
-             bm.url.toLowerCase().includes(query);
+  // Pulled into its own function so tests.js can verify the filtering
+  // logic directly with fake bookmark data.
+  function filterBookmarks(list, query) {
+    const q = (query || "").toLowerCase().trim();
+    if (q === "") return list;
+    return list.filter(function (bm) {
+      return bm.title.toLowerCase().includes(q) ||
+             bm.url.toLowerCase().includes(q);
     });
-    renderBookmarkList(filtered);
+  }
+
+  searchInput.addEventListener("input", function () {
+    const all = bookmarkList._allBookmarks || [];
+    renderBookmarkList(filterBookmarks(all, searchInput.value));
   });
 
   document.getElementById("btn-refresh").addEventListener("click", function () {
@@ -693,6 +867,29 @@ chrome.storage.sync.get(
   //         EXPORT BOOKMARKS
   // ══════════════════════════════════════════════
 
+  // Standard Netscape Bookmark File Format — all browsers understand this
+  function buildBookmarkHtmlExport(bookmarks) {
+    let html = '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n';
+    html += '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n';
+    html += '<TITLE>Bookmarks</TITLE>\n';
+    html += '<H1>Bookmarks</H1>\n';
+    html += '<DL><p>\n';
+    bookmarks.forEach(function (bm) {
+      html += '  <DT><A HREF="' + escapeHtml(bm.url) + '">' + escapeHtml(bm.title) + '</A>\n';
+    });
+    html += '</DL><p>';
+    return html;
+  }
+
+  function buildBookmarkJsonExport(bookmarks) {
+    const exportObj = {
+      exportedAt: new Date().toISOString(),
+      count:      bookmarks.length,
+      bookmarks:  bookmarks
+    };
+    return JSON.stringify(exportObj, null, 2);
+  }
+
   // Export bookmarks as HTML (this format can be IMPORTED into any browser!)
   document.getElementById("export-bm-html").addEventListener("click", function () {
     const all = bookmarkList._allBookmarks || [];
@@ -700,20 +897,7 @@ chrome.storage.sync.get(
       showStatus("⚠️ No bookmarks to export.", "error");
       return;
     }
-
-    // Standard Netscape Bookmark File Format — all browsers understand this
-    let html = '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n';
-    html += '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n';
-    html += '<TITLE>Bookmarks</TITLE>\n';
-    html += '<H1>Bookmarks</H1>\n';
-    html += '<DL><p>\n';
-
-    all.forEach(function (bm) {
-      html += '  <DT><A HREF="' + bm.url + '">' + bm.title + '</A>\n';
-    });
-
-    html += '</DL><p>';
-
+    const html = buildBookmarkHtmlExport(all);
     downloadFile(html, "bookmarks-" + Date.now() + ".html", "text/html");
     showStatus("✅ Bookmarks exported as HTML!", "success");
   });
@@ -725,14 +909,7 @@ chrome.storage.sync.get(
       showStatus("⚠️ No bookmarks to export.", "error");
       return;
     }
-
-    const exportObj = {
-      exportedAt: new Date().toISOString(),
-      count:      all.length,
-      bookmarks:  all
-    };
-
-    const jsonContent = JSON.stringify(exportObj, null, 2);
+    const jsonContent = buildBookmarkJsonExport(all);
     downloadFile(jsonContent, "bookmarks-" + Date.now() + ".json", "application/json");
     showStatus("✅ Bookmarks exported as JSON!", "success");
   });
@@ -764,33 +941,20 @@ chrome.storage.sync.get(
                     // It starts empty every time the popup opens
                     let conversationHistory = [];
                     let pageContext = "";
+                    // Task 3C — state needed for the copy/regenerate/word-counter features
+                    let lastAIResponse  = "";
+                    let lastActionType  = "";   // "summarize" or "ask"
+                    let lastQuestionText = "";
+
+                    function updateContextWordCounter() {
+                      const el = document.getElementById("context-word-count");
+                      if (!el) return;
+                      if (!pageContext) { el.textContent = ""; return; }
+                      const words = pageContext.trim().split(/\s+/).filter(Boolean).length;
+                      el.textContent = "📄 Page context: " + words + " words";
+                    }
 
 
-
-        // When popup opens, load saved API key
-      // Load saved Gemini API key
-                  
-                  // chrome.storage.local.get("geminiApiKey", function (result) {
-                  //   if (result.geminiApiKey) {
-                  //     document.getElementById("api-key-input").value = result.geminiApiKey;
-                  //   }
-                  // });
-
-                  // Save key button
-                 // ✅ NEW (fixed)
-                      // document.getElementById("btn-save-key").addEventListener("click", function () {
-                      //   const key = document.getElementById("api-key-input").value.trim();
-
-                      //   if (!key) {
-                      //     alert("Please paste your API key first.");
-                      //     return;
-                      //   }
-
-                      //   chrome.storage.sync.set({ geminiApiKey: key }, function () {
-                      //     alert("✅ Gemini API key saved!");
-                      //   });
-                      //   // ← No clear line. Key stays in the input. That's correct behaviour.
-                      // });
 
 
 
@@ -807,6 +971,7 @@ chrome.storage.sync.get(
                               btn.classList.remove("active");
                             });
                             document.getElementById("tab-ai").classList.add("active");
+                            chrome.storage.local.set({ lastActiveTab: "tab-ai" });
 
                             // Check if API key exists — show warning if not
                             chrome.storage.sync.get("geminiApiKey", function (result) {
@@ -834,6 +999,13 @@ chrome.storage.sync.get(
                   /////////////////////////////
                   ///////       CALL API 
                   /////////////////////////////              
+                                        // Builds one Gemini "contents" entry. Pulled out to its own
+                                        // function so the test suite can verify the exact shape
+                                        // callGeminiAPI pushes into conversationHistory.
+                                        function buildHistoryEntry(role, text) {
+                                          return { role: role, parts: [{ text: text }] };
+                                        }
+
                                         async function callGeminiAPI(newUserMessage) {
                           const result = await chrome.storage.sync.get("geminiApiKey");
                           const apiKey = result.geminiApiKey;
@@ -843,10 +1015,7 @@ chrome.storage.sync.get(
                           }
 
                           // Step 1: Add the new user message to history
-                          conversationHistory.push({
-                            role: "user",
-                            parts: [{ text: newUserMessage }]
-                          });
+                          conversationHistory.push(buildHistoryEntry("user", newUserMessage));
 
                           // Step 2: Send the ENTIRE history to Gemini
                           const response = await fetch(
@@ -873,10 +1042,7 @@ chrome.storage.sync.get(
                             const aiReply = data.candidates[0].content.parts[0].text;
 
                             // Step 3: Add AI reply to history too
-                            conversationHistory.push({
-                              role: "model",
-                              parts: [{ text: aiReply }]
-                            });
+                            conversationHistory.push(buildHistoryEntry("model", aiReply));
 
                             return aiReply;
 
@@ -889,8 +1055,8 @@ chrome.storage.sync.get(
                                       //button click handler
                                       ///////
                                       ///////
-                                    // ✅ FIXED summarize button
-                            document.getElementById("btn-summarize").addEventListener("click", async function () {
+                                    // summarize button
+                            async function runSummarize() {
                               const box = document.getElementById("ai-results-box");
 
                               try {
@@ -916,6 +1082,8 @@ chrome.storage.sync.get(
 
                                 // Save page text so Ask button can reuse it without re-scraping
                                 pageContext = response.data;
+                                updateContextWordCounter();
+                                lastActionType = "summarize";
 
                                 const prompt = `Please summarize this webpage content in 3-5 clear bullet points. Be concise and focus on the main ideas.
 
@@ -944,15 +1112,33 @@ chrome.storage.sync.get(
                               } catch (err) {
                                 box.innerHTML = "<p>❌ Something went wrong: " + err.message + "</p>";
                               }
-                            });
+                            }
+
+                            document.getElementById("btn-summarize").addEventListener("click", runSummarize);
                 /////////////ASK A QUESTION BUTTON
                 ////////////////////
                 /////////////////////
 
-                      // ✅ FIXED ask button
-                    document.getElementById("btn-ask").addEventListener("click", async function () {
-                      const question = document.getElementById("question-input").value.trim();
+                      //   ask button
+                    // Only the FIRST question in a conversation needs the page content —
+                    // after that, Gemini already has it from conversation history.
+                    // Pulled out to its own function so the test suite can verify this
+                    // "first message vs. follow-up" behavior directly.
+                    function buildAskPrompt(question, currentPageContext, historyLength) {
+                      if (historyLength === 0) {
+                        return `Here is the content of a webpage:
 
+                    ${currentPageContext}
+
+                    Based only on this content, please answer:
+                    ${question}`;
+                      }
+                      return question;
+                    }
+
+                    // isRegenerate=true skips re-adding a duplicate user bubble
+                    // and skips clearing the input — used by the 🔁 Regenerate button.
+                    async function runAsk(question, isRegenerate) {
                       if (!question) {
                         alert("Please type a question first.");
                         return;
@@ -984,13 +1170,18 @@ chrome.storage.sync.get(
                           }
 
                           pageContext = response.data;
+                          updateContextWordCounter();
                         }
 
-                        // Show user's question as a bubble immediately
-                        addMessageToDisplay("user", question);
+                        lastActionType   = "ask";
+                        lastQuestionText = question;
 
-                        // Clear the input box
-                        document.getElementById("question-input").value = "";
+                        if (!isRegenerate) {
+                          // Show user's question as a bubble immediately
+                          addMessageToDisplay("user", question);
+                          // Clear the input box
+                          document.getElementById("question-input").value = "";
+                        }
 
                         // Show loading
                         const loadingP = document.createElement("p");
@@ -1002,18 +1193,7 @@ chrome.storage.sync.get(
 
                         // Build prompt — only include page context on the FIRST question
                         // After that, Gemini already has it in conversation history
-                        let prompt;
-                        if (conversationHistory.length === 0) {
-                          prompt = `Here is the content of a webpage:
-
-                    ${pageContext}
-
-                    Based only on this content, please answer:
-                    ${question}`;
-                        } else {
-                          // Follow-up question — no need to repeat the whole page
-                          prompt = question;
-                        }
+                        const prompt = buildAskPrompt(question, pageContext, conversationHistory.length);
 
                         const answer = await callGeminiAPI(prompt);
 
@@ -1025,6 +1205,42 @@ chrome.storage.sync.get(
                       } catch (err) {
                         box.innerHTML = "<p>❌ Something went wrong: " + err.message + "</p>";
                       }
+                    }
+
+                    document.getElementById("btn-ask").addEventListener("click", function () {
+                      const question = document.getElementById("question-input").value.trim();
+                      runAsk(question, false);
+                    });
+
+                    // ── 🔁 REGENERATE (Task 3C) ───────────────────────────────
+                    document.getElementById("btn-regenerate").addEventListener("click", function () {
+                      if (lastActionType === "summarize") {
+                        runSummarize();
+                      } else if (lastActionType === "ask" && lastQuestionText) {
+                        runAsk(lastQuestionText, true);
+                      } else {
+                        showToast("Nothing to regenerate yet");
+                      }
+                    });
+
+                    // ── 📋 COPY LAST RESPONSE (Task 3C) ───────────────────────
+                    document.getElementById("btn-copy-response").addEventListener("click", async function () {
+                      if (!lastAIResponse) {
+                        showToast("No response yet");
+                        return;
+                      }
+                      try {
+                        await navigator.clipboard.writeText(lastAIResponse);
+                      } catch (e) {
+                        // Fallback for contexts where the Clipboard API is unavailable
+                        const ta = document.createElement("textarea");
+                        ta.value = lastAIResponse;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand("copy");
+                        ta.remove();
+                      }
+                      showToast("✅ copied!");
                     });
 
                     // chat message display 
@@ -1059,6 +1275,11 @@ chrome.storage.sync.get(
                             // Put the bubble in the results box
                             box.appendChild(messageDiv);
 
+                            // Remember the latest AI reply for the "📋 Copy Last Response" button
+                            if (role === "ai") {
+                              lastAIResponse = text;
+                            }
+
                             // Auto-scroll to the bottom so user always sees the latest message
                             box.scrollTop = box.scrollHeight;
                           }
@@ -1070,6 +1291,10 @@ chrome.storage.sync.get(
                             // Empty the history array
                             conversationHistory = [];
                             pageContext = "";
+                            lastAIResponse   = "";
+                            lastActionType   = "";
+                            lastQuestionText = "";
+                            updateContextWordCounter();
 
                             // Clear the display
                             document.getElementById("ai-results-box").innerHTML =
@@ -1126,6 +1351,8 @@ chrome.storage.sync.get(
 
                             // Also save the page's title so we can display it in the history list
                             chrome.storage.local.set({ ["title:" + pageUrl]: pageTitle || pageUrl });
+
+                            updateHistoryCountBadge();
                           });
                         }
 
@@ -1218,66 +1445,145 @@ chrome.storage.sync.get(
                           return key.startsWith("history:");
                         });
 
+                        // Remember the raw data so the search box can re-render without
+                        // hitting storage again (Task 3D)
+                        historyList._allData      = allData;
+                        historyList._historyKeys  = historyKeys;
+
+                        renderHistoryList(historyKeys, allData);
+                        updateHistoryCountBadge();
+                      });
+                    }
+
+                    // Builds the card-based history list (also used by the search filter).
+                    // Fixes a bug where history cards used hardcoded light-theme colors
+                    // that never adapted to dark mode — now they use CSS classes/variables.
+                    function renderHistoryList(historyKeys, allData) {
+                      const historyList = document.getElementById("history-list");
+
+                      if (historyKeys.length === 0) {
+                        historyList.innerHTML = "<p class='placeholder'>No scraping history yet. Scrape a page first!</p>";
+                        return;
+                      }
+
+                      historyList.innerHTML = "";
+
+                      // Sort pages by most recently scraped (look at the newest entry in each page's array)
+                      const sortedKeys = historyKeys.slice().sort(function (a, b) {
+                        const aTime = allData[a][0].timestamp;  // [0] = newest entry (we used unshift)
+                        const bTime = allData[b][0].timestamp;
+                        return bTime - aTime;                   // descending order (newest first)
+                      });
+
+                      sortedKeys.forEach(function (key) {
+                        const pageUrl    = key.replace("history:", "");
+                        const pageTitle  = allData["title:" + pageUrl] || pageUrl;
+                        const entries    = allData[key];          // array of scrape entries
+                        const noteKey    = "note:" + pageUrl;
+                        const savedNote  = allData[noteKey] || "";
+
+                        // Card for this page
+                        const card = document.createElement("div");
+                        card.className = "history-card";
+
+                        // Page title (clickable → opens page in new tab)
+                        const titleEl = document.createElement("p");
+                        titleEl.className = "history-title";
+                        titleEl.textContent = pageTitle;
+                        titleEl.title       = pageUrl;
+                        titleEl.addEventListener("click", function () { chrome.tabs.create({ url: pageUrl }); });
+                        card.appendChild(titleEl);
+
+                        // List of scrape entries for this page, each with a timestamp pill badge
+                        entries.forEach(function (entry) {
+                          const row = document.createElement("div");
+                          row.className = "history-entry-row";
+
+                          const text = document.createElement("span");
+                          text.className = "history-entry-text";
+                          text.textContent = "• " + entry.action + " — " + entry.count + " results";
+
+                          const pill = document.createElement("span");
+                          pill.className = "timestamp-pill";
+                          pill.textContent = new Date(entry.timestamp).toLocaleString();
+
+                          row.appendChild(text);
+                          row.appendChild(pill);
+                          card.appendChild(row);
+                        });
+
+                        // Note display (if exists)
+                        if (savedNote) {
+                          const noteEl = document.createElement("p");
+                          noteEl.className = "history-note";
+                          noteEl.textContent = "📝 " + savedNote;
+                          card.appendChild(noteEl);
+                        }
+
+                        historyList.appendChild(card);
+                      });
+                    }
+
+                    // Pulled into its own function so tests.js can verify the
+                    // filtering logic directly with fake history data.
+                    function filterHistoryKeys(allKeys, allData, query) {
+                      const q = (query || "").toLowerCase().trim();
+                      if (q === "") return allKeys;
+                      return allKeys.filter(function (key) {
+                        const pageUrl   = key.replace("history:", "");
+                        const pageTitle = (allData["title:" + pageUrl] || pageUrl).toLowerCase();
+                        return pageTitle.includes(q) || pageUrl.toLowerCase().includes(q);
+                      });
+                    }
+
+                    // ── 🔍 SEARCH HISTORY (Task 3D) ─────────────────────────────
+                    document.getElementById("history-search-input").addEventListener("input", function () {
+                      const historyList = document.getElementById("history-list");
+                      const allData  = historyList._allData     || {};
+                      const allKeys  = historyList._historyKeys || [];
+                      const filtered = filterHistoryKeys(allKeys, allData, this.value);
+
+                      if (filtered.length === 0) {
+                        historyList.innerHTML = "<p class='placeholder'>No matching history found.</p>";
+                        return;
+                      }
+
+                      renderHistoryList(filtered, allData);
+                    });
+
+                    // ── 📤 EXPORT HISTORY (Task 3D) ─────────────────────────────
+                    document.getElementById("btn-export-history").addEventListener("click", function () {
+                      chrome.storage.local.get(null, function (allData) {
+                        const historyKeys = Object.keys(allData).filter(function (key) {
+                          return key.startsWith("history:");
+                        });
+
                         if (historyKeys.length === 0) {
-                          historyList.innerHTML = "<p class='placeholder'>No scraping history yet. Scrape a page first!</p>";
+                          showToast("No history to export");
                           return;
                         }
 
-                        historyList.innerHTML = "";
+                        const exportObj = {
+                          exportedAt: new Date().toISOString(),
+                          pages: historyKeys.map(function (key) {
+                            const pageUrl = key.replace("history:", "");
+                            return {
+                              url:     pageUrl,
+                              title:   allData["title:" + pageUrl] || pageUrl,
+                              note:    allData["note:" + pageUrl] || "",
+                              entries: allData[key]
+                            };
+                          })
+                        };
 
-                        // Sort pages by most recently scraped (look at the newest entry in each page's array)
-                        historyKeys.sort(function (a, b) {
-                          const aTime = allData[a][0].timestamp;  // [0] = newest entry (we used unshift)
-                          const bTime = allData[b][0].timestamp;
-                          return bTime - aTime;                   // descending order (newest first)
-                        });
-
-                        historyKeys.forEach(function (key) {
-                          const pageUrl    = key.replace("history:", "");
-                          const pageTitle  = allData["title:" + pageUrl] || pageUrl;
-                          const entries    = allData[key];          // array of scrape entries
-                          const noteKey    = "note:" + pageUrl;
-                          const savedNote  = allData[noteKey] || "";
-
-                          // Container for this page
-                          const pageDiv = document.createElement("div");
-                          pageDiv.style.cssText = "margin-bottom: 12px; padding: 10px; background: #f8f9ff; border-radius: 8px; border: 1px solid #e0e4ff;";
-
-                          // Page title (clickable → opens page in new tab)
-                          const titleEl = document.createElement("p");
-                          titleEl.style.cssText = "font-size: 12px; font-weight: 600; color: #4f46e5; cursor: pointer; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
-                          titleEl.textContent = pageTitle;
-                          titleEl.title       = pageUrl;
-                          titleEl.addEventListener("click", function () { chrome.tabs.create({ url: pageUrl }); });
-
-                          // List of scrape entries for this page
-                          const entriesEl = document.createElement("div");
-                          entries.forEach(function (entry) {
-                            const d = document.createElement("p");
-                            d.style.cssText = "font-size: 11px; color: #6b7280; margin: 2px 0;";
-                            // Convert raw timestamp to human-readable string
-                            const dateStr = new Date(entry.timestamp).toLocaleString();
-                            d.textContent = "• " + entry.action + " — " + entry.count + " results  (" + dateStr + ")";
-                            entriesEl.appendChild(d);
-                          });
-
-                          // Note display (if exists)
-                          if (savedNote) {
-                            const noteEl = document.createElement("p");
-                            noteEl.style.cssText = "font-size: 11px; color: #059669; margin-top: 6px; padding: 4px 8px; background: #ecfdf5; border-radius: 4px;";
-                            noteEl.textContent = "📝 " + savedNote;
-                            pageDiv.appendChild(titleEl);
-                            pageDiv.appendChild(entriesEl);
-                            pageDiv.appendChild(noteEl);
-                          } else {
-                            pageDiv.appendChild(titleEl);
-                            pageDiv.appendChild(entriesEl);
-                          }
-
-                          historyList.appendChild(pageDiv);
-                        });
+                        downloadFile(
+                          JSON.stringify(exportObj, null, 2),
+                          "history-" + Date.now() + ".json",
+                          "application/json"
+                        );
+                        showToast("📤 History exported!");
                       });
-                    } 
+                    });
 
                     //===================================================
                     //===================================
@@ -1295,6 +1601,7 @@ chrome.storage.sync.get(
 
                             chrome.storage.local.remove(keysToDelete, function () {
                               loadHistory();
+                              updateHistoryCountBadge();
                             });
                           });
                         });
@@ -1302,9 +1609,38 @@ chrome.storage.sync.get(
 
                         //////=====================================
                         //============================
-                       
 
-
+  // ══════════════════════════════════════════════
+  //   TEST HOOKS (Task 2) — exposes real internal functions so the
+  //   test suite in tests.js can verify actual app logic instead of a
+  //   guessed re-implementation. This has zero effect on normal usage;
+  //   it only matters if something reads window.__TEST_HOOKS__.
+  // ══════════════════════════════════════════════
+  window.__TEST_HOOKS__ = {
+    escapeHtml:               escapeHtml,
+    buildCsvExport:           buildCsvExport,
+    buildJsonExport:          buildJsonExport,
+    buildScrapedHtmlExport:   buildScrapedHtmlExport,
+    buildBookmarkHtmlExport:  buildBookmarkHtmlExport,
+    buildBookmarkJsonExport:  buildBookmarkJsonExport,
+    flattenBookmarkTree:      flattenBookmarkTree,
+    buildAskPrompt:           buildAskPrompt,
+    buildHistoryEntry:        buildHistoryEntry,
+    resetScraperResults:      resetScraperResults,
+    renderBookmarkList:       renderBookmarkList,
+    renderHistoryList:        renderHistoryList,
+    saveToHistory:            saveToHistory,
+    updateHistoryCountBadge:  updateHistoryCountBadge,
+    updateContextWordCounter: updateContextWordCounter,
+    showToast:                showToast,
+    isRestrictedUrl:          isRestrictedUrl,
+    callGeminiAPI:            callGeminiAPI,
+    applyFeatureVisibility:   applyFeatureVisibility,
+    filterBookmarks:          filterBookmarks,
+    filterHistoryKeys:        filterHistoryKeys,
+    getLastScrapedData:       function () { return lastScrapedData; },
+    getLastScrapedAction:     function () { return lastScrapedAction; }
+  };
 
 
 

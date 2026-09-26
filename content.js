@@ -45,7 +45,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     }
     sendResponse({ data: results.slice(0, 30) });
   }
-        // for AI 
+        // for AI
         else if (message.action === "scrape-text") {
         // Get the body text, remove extra whitespace
         const text = document.body.innerText
@@ -56,5 +56,18 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         sendResponse({ data: text });
       }
 
+  // Task 3A — "📊 Page Stats" button: count everything on the page at once
+  else if (message.action === "scrape-stats") {
+    const bodyText  = (document.body.innerText || "").trim();
+    const wordCount = bodyText === "" ? 0 : bodyText.split(/\s+/).length;
+    const stats = {
+      words:    wordCount,
+      images:   document.querySelectorAll("img").length,
+      links:    document.querySelectorAll("a[href^='http']").length,
+      headings: document.querySelectorAll("h1, h2, h3").length
+    };
+    sendResponse({ data: stats });
+  }
+
   return true;
-});   
+});

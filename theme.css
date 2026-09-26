@@ -3,166 +3,109 @@
    This file is the single source of truth for all colours.
    ═══════════════════════════════════════════════════════════════════════ */
 
-
-
-                /* THEME FROM COLOR PALLETE  */
-                /* ========================================================================
-                =========================================================================== */
+/* ── LIGHT THEME (default) ─────────────────────────────────────────────
+   A clean, premium light theme. Every screen (popup + options) reads
+   its colours from these variables, so changing a value here reskins
+   the whole extension instantly.                                        */
 :root {
-  --accent:         #1d4ed8;   /* royal blue                           */
-  --accent2:        #1e40af;   /* deep royal blue                      */
-  --bg-main:        #f8f9fc;
-  --bg-card:        #ffffff;
-  --bg-input:       #f1f4fb;
-  --bg-result:      #f1f4fb;
-  --bg-hover:       #e8edf8;
-  --border-color:   #c7d2e8;
-  --shadow:         rgba(29, 78, 216, 0.10);
-  --text-primary:   #0d1529;
-  --text-secondary: #4a5578;
-  --text-link:      #1d4ed8;
-  --placeholder:    #94a3b8;
-  --tab-active-bg:  #ffffff;
-  --tab-text:       #64748b;
-  --note-bg:        #eff6ff;
-  --note-color:     #1e40af;
-  --danger:         #dc2626;
-  --danger-bg:      #fef2f2;
+  --accent:          #4f46e5;   /* primary brand colour — indigo         */
+  --accent2:         #7c3aed;   /* secondary brand colour — purple       */
+
+  --bg-main:         #eef0fb;
+  --bg-card:         #ffffff;
+  --bg-card-glass:   rgba(255, 255, 255, 0.65);
+  --bg-input:        #f8f9ff;
+  --bg-result:       #f8f9ff;
+  --bg-hover:        #f0f2ff;
+  --border-color:    #e0e4ff;
+  --glass-border:    rgba(79, 70, 229, 0.12);
+  --shadow:          rgba(79, 70, 229, 0.12);
+
+  --text-primary:    #1e1b4b;
+  --text-secondary:  #6b7280;
+  --text-link:       #4f46e5;
+  --placeholder:     #9ca3af;
+
+  --sidebar-bg:      #ffffff;
+  --tab-active-bg:   #f0f2ff;
+  --tab-text:        #6b7280;
+
+  --note-bg:         #fff9db;
+  --note-color:      #7a5c00;
+  --danger:          #dc2626;
+  --danger-bg:       #fef2f2;
+  --success:         #059669;
+  --success-bg:      #ecfdf5;
+
+  /* per-section accent colours (Task 1 requirement) */
+  --scraper-accent:   #2563eb;
+  --scraper-accent2:  #1d4ed8;
+  --bookmarks-accent: #9333ea;
+  --bookmarks-accent2:#7e22ce;
+  --ai-accent:        #059669;
+  --ai-accent2:       #047857;
+  --history-accent:   #d97706;
+  --history-accent2:  #b45309;
 }
 
+/* ── DARK THEME — "Premium Navy" ───────────────────────────────────────
+   Deep navy background with vivid purple/blue gradients. This is the
+   flagship look of the extension.                                       */
 body.dark {
-  --accent:         #3b82f6;   /* bright blue on dark                  */
-  --accent2:        #2563eb;
-  --bg-main:        #060912;   /* deepest navy                         */
-  --bg-card:        #0d1117;   /* GitHub dark energy                   */
-  --bg-input:       #161b2e;
-  --bg-result:      #161b2e;
-  --bg-hover:       #1e2640;
-  --border-color:   #1e2d4a;
-  --shadow:         rgba(0, 0, 0, 0.6);
-  --text-primary:   #e8edf8;
-  --text-secondary: #8899bb;
-  --text-link:      #3b82f6;
-  --placeholder:    #2a3a5c;
-  --tab-active-bg:  #0d1117;
-  --tab-text:       #4a6080;
-  --note-bg:        #0a1628;
-  --note-color:     #3b82f6;
-  --danger:         #f87171;
-  --danger-bg:      #450a0a;
+  --accent:          #818cf8;
+  --accent2:         #a78bfa;
+
+  --bg-main:         #0f0f1a;
+  --bg-card:         #171727;
+  --bg-card-glass:   rgba(255, 255, 255, 0.06);
+  --bg-input:        #1a1a2e;
+  --bg-result:       rgba(255, 255, 255, 0.04);
+  --bg-hover:        rgba(255, 255, 255, 0.08);
+  --border-color:    rgba(255, 255, 255, 0.08);
+  --glass-border:    rgba(255, 255, 255, 0.1);
+  --shadow:          rgba(0, 0, 0, 0.45);
+
+  --text-primary:    #edeeff;
+  --text-secondary:  #9ca3c0;
+  --text-link:       #a5b4fc;
+  --placeholder:     #565a7a;
+
+  --sidebar-bg:      #0b0b14;
+  --tab-active-bg:   rgba(255, 255, 255, 0.08);
+  --tab-text:        #7b81a3;
+
+  --note-bg:         #2b2308;
+  --note-color:      #fbbf24;
+  --danger:          #f87171;
+  --danger-bg:       rgba(248, 113, 113, 0.12);
+  --success:         #34d399;
+  --success-bg:      rgba(52, 211, 153, 0.12);
+
+  --scraper-accent:   #3b82f6;
+  --scraper-accent2:  #60a5fa;
+  --bookmarks-accent: #c084fc;
+  --bookmarks-accent2:#a855f7;
+  --ai-accent:        #34d399;
+  --ai-accent2:       #10b981;
+  --history-accent:   #fbbf24;
+  --history-accent2:  #f59e0b;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   PRESET THEMES — Uncomment one block to instantly rebrand
+   PRESET THEMES — Uncomment one block to instantly rebrand the light
+   theme's accent + background colours for a different client.
    ═══════════════════════════════════════════════════════════════════════
 
 ── EMERALD (green) ──────────────────────────────────────────────────────
-:root { --accent: #059669; --accent2: #047857; --bg-main: #f0fdf4;
-        --bg-card: #ffffff; --bg-input: #f0fdf4; --bg-result: #f0fdf4;
-        --bg-hover: #dcfce7; --border-color: #bbf7d0; --text-primary: #064e3b;
-        --text-secondary: #6b7280; --text-link: #059669;
-        --tab-active-bg: #ffffff; --tab-text: #6b7280;
-        --placeholder: #9ca3af; --shadow: rgba(5,150,105,0.10);
-        --note-bg: #ecfdf5; --note-color: #059669;
-        --danger: #dc2626; --danger-bg: #fef2f2; }
+:root { --accent: #059669; --accent2: #047857; --bg-main: #f0fdf4; }
 
 ── ROSE (pink/red) ──────────────────────────────────────────────────────
-:root { --accent: #e11d48; --accent2: #be123c; --bg-main: #fff1f2;
-        --bg-card: #ffffff; --bg-input: #fff1f2; --bg-result: #fff1f2;
-        --bg-hover: #ffe4e6; --border-color: #fecdd3; --text-primary: #4c0519;
-        --text-secondary: #6b7280; --text-link: #e11d48;
-        --tab-active-bg: #ffffff; --tab-text: #6b7280;
-        --placeholder: #9ca3af; --shadow: rgba(225,29,72,0.10);
-        --note-bg: #ecfdf5; --note-color: #059669;
-        --danger: #dc2626; --danger-bg: #fef2f2; }
+:root { --accent: #e11d48; --accent2: #be123c; --bg-main: #fff1f2; }
 
 ── OCEAN (blue) ─────────────────────────────────────────────────────────
-:root { --accent: #0284c7; --accent2: #0369a1; --bg-main: #f0f9ff;
-        --bg-card: #ffffff; --bg-input: #f0f9ff; --bg-result: #f0f9ff;
-        --bg-hover: #e0f2fe; --border-color: #bae6fd; --text-primary: #0c4a6e;
-        --text-secondary: #6b7280; --text-link: #0284c7;
-        --tab-active-bg: #ffffff; --tab-text: #6b7280;
-        --placeholder: #9ca3af; --shadow: rgba(2,132,199,0.10);
-        --note-bg: #ecfdf5; --note-color: #059669;
-        --danger: #dc2626; --danger-bg: #fef2f2; }
+:root { --accent: #0284c7; --accent2: #0369a1; --bg-main: #f0f9ff; }
 
 ── AMBER (orange/gold) ──────────────────────────────────────────────────
-:root { --accent: #d97706; --accent2: #b45309; --bg-main: #fffbeb;
-        --bg-card: #ffffff; --bg-input: #fffbeb; --bg-result: #fffbeb;
-        --bg-hover: #fef3c7; --border-color: #fde68a; --text-primary: #451a03;
-        --text-secondary: #6b7280; --text-link: #d97706;
-        --tab-active-bg: #ffffff; --tab-text: #6b7280;
-        --placeholder: #9ca3af; --shadow: rgba(217,119,6,0.10);
-        --note-bg: #ecfdf5; --note-color: #059669;
-        --danger: #dc2626; --danger-bg: #fef2f2; }
+:root { --accent: #d97706; --accent2: #b45309; --bg-main: #fffbeb; }
 
 */
-
-
-
-
-/* first starting theme  */
-
-@media (max-width: 0px) {
-  :root {
-    --bg-main: #f0f2ff;
-    /* all your old variables with their comments */
-    :root { 
-
-  /* ── BRAND COLOURS ─────────────────────────────────────────────────
-     These two are the main colours used for buttons, active tabs,
-     gradients, links, and highlights throughout the extension.
-     Change these two values to completely rebrand for any client.     */
-  --accent:   #4f46e5;   /* primary brand colour — indigo/purple       */
-  --accent2:  #7c3aed;   /* secondary brand colour — deeper purple     */
-
-  /* ── LIGHT THEME ───────────────────────────────────────────────── */
-  --bg-main:        #f0f2ff;   /* page background                      */
-  --bg-card:        #ffffff;   /* card/panel background                */
-  --bg-input:       #f8f9ff;   /* input field background               */
-  --bg-result:      #f8f9ff;   /* results box background               */
-  --bg-hover:       #f0f2ff;   /* hover state background               */
-  --border-color:   #e0e4ff;   /* all borders                          */
-  --text-primary:   #1e1b4b;   /* main text                            */
-  --text-secondary: #6b7280;   /* hint text, labels, secondary info    */
-  --text-link:      #4f46e5;   /* clickable link colour                */
-  --tab-active-bg:  #ffffff;   /* active tab background                */
-  --tab-text:       #6b7280;   /* inactive tab text                    */
-  --placeholder:    #9ca3af;   /* placeholder text in empty boxes      */
-  --shadow:         rgba(79, 70, 229, 0.10);
-  --note-bg:        #ecfdf5;
-  --note-color:     #059669;
-  --danger:         #dc2626;
-  --danger-bg:      #fef2f2;
-} 
-
-
-  }
-  body.dark {
-    
-/* ── DARK THEME ──────────────────────────────────────────────────────
-   Same variable names, darker values.
-   The accent colours stay the same — they look great on dark too.   */
- body.dark {
-  --bg-main:        #0f0f1a;
-  --bg-card:        #1a1a2e;
-  --bg-input:       #16213e;
-  --bg-result:      #16213e;
-  --bg-hover:       #1a1a2e;
-  --border-color:   #2d2d4e;
-  --text-primary:   #e0e0ff;
-  --text-secondary: #9090b0;
-  --text-link:      #818cf8;
-  --tab-active-bg:  #1a1a2e;
-  --tab-text:       #9090b0;
-  --placeholder:    #555577;
-  --shadow:         rgba(0, 0, 0, 0.4);
-  --note-bg:        #064e3b;
-  --note-color:     #34d399;
-  --danger:         #f87171;
-  --danger-bg:      #450a0a;
-} 
-    
-    
-  }
-}

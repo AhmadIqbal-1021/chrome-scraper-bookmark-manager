@@ -65,15 +65,16 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   document.getElementById("btn-save-key").addEventListener("click", function () {
     const key = document.getElementById("api-key-input").value.trim();
     if (!key) {
-      document.getElementById("save-status").textContent = "⚠️ Please paste a key first.";
-      document.getElementById("save-status").style.color = "#dc2626";
+      const status = document.getElementById("save-status");
+      status.textContent = "⚠️ Please paste a key first.";
+      status.className = "status-msg error";
       return;
     }
     chrome.storage.sync.set({ geminiApiKey: key }, function () {
       const status = document.getElementById("save-status");
       status.textContent = "✅ API key saved!";
-      status.style.color = "#059669";
-      setTimeout(function () { status.textContent = ""; }, 3000);
+      status.className = "status-msg success";
+      setTimeout(function () { status.textContent = ""; status.className = "status-msg"; }, 3000);
     });
   });
 
@@ -106,7 +107,7 @@ function saveToggles() {
   }, function () {
     const status = document.getElementById("toggle-status");
     status.textContent = "✅ Saved!";
-    status.style.color = "#059669";
-    setTimeout(function () { status.textContent = ""; }, 2000);
+    status.className = "status-msg success";
+    setTimeout(function () { status.textContent = ""; status.className = "status-msg"; }, 2000);
   });
 }

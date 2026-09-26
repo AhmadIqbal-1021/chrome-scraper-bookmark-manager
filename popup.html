@@ -8,149 +8,179 @@
   </head>
   <body>
 
-    <h1>🧩 Scraper & Bookmarks</h1>
+    <!-- GRADIENT HEADER -->
+    <header class="app-header">
+      <h1><span class="logo-pulse">🧩</span> Scraper &amp; Bookmarks</h1>
+    </header>
 
-    <div class="tabs">
-      <button class="tab-btn active" id="tab-scraper">🕷️ Scraper</button>
-      <button class="tab-btn" id="tab-bookmarks">🔖 Bookmarks</button>
-      <button class="tab-btn" id="tab-ai">🤖 AI</button>  <!-- NEW -->
-      <button class="tab-btn" id="tab-history">🕘 History</button>
+    <div class="app-shell">
+
+      <!-- LEFT SIDEBAR NAVIGATION -->
+      <nav class="sidebar">
+        <button class="tab-btn active" id="tab-scraper">
+          <span class="tab-icon">🕷️</span>
+          <span class="tab-label">Scraper</span>
+        </button>
+        <button class="tab-btn" id="tab-bookmarks">
+          <span class="tab-icon">🔖</span>
+          <span class="tab-label">Bookmarks</span>
+        </button>
+        <button class="tab-btn" id="tab-ai">
+          <span class="tab-icon">🤖</span>
+          <span class="tab-label">AI</span>
+        </button>
+        <button class="tab-btn" id="tab-history">
+          <span class="tab-icon">🕘</span>
+          <span class="tab-label">History</span>
+          <span class="tab-badge" id="history-count-badge"></span>
+        </button>
+
+        <div class="sidebar-spacer"></div>
+
+        <button id="btn-dark-mode" class="sidebar-icon-btn" title="Toggle dark mode">🌙</button>
+        <button id="btn-open-settings" class="sidebar-icon-btn" title="Settings">⚙️</button>
+      </nav>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="content-area">
+
+        <!-- SCRAPER SECTION -->
+        <div id="section-scraper" class="section">
+          <p class="hint">Choose what to scrape from the current page</p>
+
+          <div class="button-group">
+            <button id="scrape-title">📄 Page Title</button>
+            <button id="scrape-links">🔗 All Links</button>
+            <button id="scrape-headings">📝 Headings</button>
+            <button id="scrape-images">🖼️ Images</button>
+          </div>
+
+          <button id="scrape-stats" class="stats-btn">📊 Page Stats</button>
+
+          <div id="results-box" class="glass-card">
+            <p class="placeholder">Results will appear here...</p>
+          </div>
+
+          <div class="export-row" id="rescrape-row" style="display:none;">
+            <button id="re-scrape-btn" class="secondary-btn full-width">🔄 Re-scrape</button>
+          </div>
+
+          <!-- Export buttons — only shown after scraping -->
+          <div class="export-row" id="export-row" style="display:none;">
+            <button class="export-btn csv" id="export-csv">⬇️ Export CSV</button>
+            <button class="export-btn json" id="export-json">⬇️ Export JSON</button>
+            <button class="export-btn html" id="export-html">⬇️ Export HTML</button>
+          </div>
+
+          <button id="clear-results" class="secondary-btn">🗑️ Clear Results</button>
+        </div>
+
+        <!-- BOOKMARKS SECTION -->
+        <div id="section-bookmarks" class="section hidden">
+
+          <div class="add-bookmark-box">
+            <input type="text" id="bookmark-title-input" placeholder="Custom title (optional)..." />
+            <button id="btn-add-bookmark">➕ Bookmark Current Page</button>
+          </div>
+
+          <p id="bookmark-stats" class="stats-line"></p>
+
+          <div class="search-box">
+            <input type="text" id="search-input" placeholder="🔍 Search bookmarks..." />
+          </div>
+
+          <div id="bookmark-list" class="glass-card">
+            <p class="placeholder">Loading bookmarks...</p>
+          </div>
+
+          <!-- Export bookmarks -->
+          <div class="bm-export-row">
+            <button class="export-btn csv" id="export-bm-html">⬇️ Export as HTML</button>
+            <button class="export-btn json" id="export-bm-json">⬇️ Export as JSON</button>
+          </div>
+
+          <div class="bookmark-actions">
+            <button id="btn-refresh" class="secondary-btn">🔄 Refresh List</button>
+          </div>
+
+        </div>
+
+        <!-- AI SECTION -->
+        <div id="section-ai" class="section hidden">
+
+          <p class="hint">Ask AI about the current page</p>
+
+          <!-- Shows only if no API key is saved yet -->
+          <div id="ai-no-key-warning" class="warning-banner" style="display:none;">
+            <p>
+              ⚠️ No API key saved.
+              <span id="link-to-settings" class="warning-link">Open Settings</span>
+              to add your Gemini key.
+            </p>
+          </div>
+
+          <div class="add-bookmark-box">
+            <button id="btn-summarize">✨ Summarize This Page</button>
+          </div>
+
+          <div class="add-bookmark-box" style="margin-top: 10px;">
+            <input type="text" id="question-input" placeholder="Ask a question about this page..." />
+            <button id="btn-ask">💬 Ask AI</button>
+            <span id="context-word-count" class="word-counter"></span>
+          </div>
+
+          <div id="ai-results-box" class="glass-card">
+            <p class="placeholder">AI response will appear here...</p>
+          </div>
+
+          <div class="bookmark-actions">
+            <button id="btn-clear-chat" class="secondary-btn">🗑️ Clear Chat</button>
+            <button id="btn-copy-response" class="secondary-btn">📋 Copy Last Response</button>
+            <button id="btn-regenerate" class="secondary-btn">🔁 Regenerate</button>
+          </div>
+
+        </div>
+
+        <!-- HISTORY SECTION -->
+        <div id="section-history" class="section hidden">
+          <p class="hint">Pages you've scraped, plus your notes</p>
+
+          <!-- Notes box for current page -->
+          <div class="note-wrapper">
+            <textarea
+              id="note-input"
+              class="sticky-note"
+              placeholder="Add a personal note about this page..."
+              rows="3"
+            ></textarea>
+            <div class="note-footer">
+              <span id="note-save-status" class="note-save-status"></span>
+              <button id="btn-delete-note" class="secondary-btn small">🗑️ Delete Note</button>
+            </div>
+          </div>
+
+          <div class="search-box">
+            <input type="text" id="history-search-input" placeholder="🔍 Search history..." />
+          </div>
+
+          <!-- History list -->
+          <div id="history-list" class="glass-card">
+            <p class="placeholder">No scraping history yet.</p>
+          </div>
+
+          <div class="bookmark-actions">
+            <button id="btn-export-history" class="secondary-btn">📤 Export History</button>
+            <button id="btn-clear-history" class="secondary-btn">🗑️ Clear All History</button>
+          </div>
+        </div>
+
+      </main>
     </div>
 
-    <!-- SCRAPER SECTION -->
-    <div id="section-scraper" class="section">
-      <p class="hint">Choose what to scrape from the current page</p>
+    <!-- Toast notification container (Task 3E) -->
+    <div id="toast-container"></div>
 
-      <div class="button-group">
-        <button id="scrape-title">📄 Page Title</button>
-        <button id="scrape-links">🔗 All Links</button>
-        <button id="scrape-headings">📝 Headings</button>
-        <button id="scrape-images">🖼️ Images</button>
-      </div>
-
-      <div id="results-box">
-        <p class="placeholder">Results will appear here...</p>
-      </div>
-
-      <!-- Export buttons — only shown after scraping -->
-      <div class="export-row" id="export-row" style="display:none;">
-        <button class="export-btn csv" id="export-csv">⬇️ Export CSV</button>
-        <button class="export-btn json" id="export-json">⬇️ Export JSON</button>
-        <button class="export-btn html" id="export-html">⬇️ Export HTML</button>
-      </div>
-
-      <button id="clear-results" class="secondary-btn">🗑️ Clear Results</button>
-    </div>
-
-    <!-- BOOKMARKS SECTION -->
-    <div id="section-bookmarks" class="section hidden">
-
-      <div class="add-bookmark-box">
-        <input type="text" id="bookmark-title-input" placeholder="Custom title (optional)..." />
-        <button id="btn-add-bookmark">➕ Bookmark Current Page</button>
-      </div>
-
-      <div class="search-box">
-        <input type="text" id="search-input" placeholder="🔍 Search bookmarks..." />
-      </div>
-
-      <div id="bookmark-list">
-        <p class="placeholder">Loading bookmarks...</p>
-      </div>
-
-      <!-- Export bookmarks -->
-      <div class="bm-export-row">
-        <button class="export-btn csv" id="export-bm-html">⬇️ Export as HTML</button>
-        <button class="export-btn json" id="export-bm-json">⬇️ Export as JSON</button>
-      </div>
-
-      <div class="bookmark-actions">
-        <button id="btn-refresh" class="secondary-btn">🔄 Refresh List</button>
-      </div>
-
-    </div>
-    <!-- AI SECTION -->
-<div id="section-ai" class="section hidden">
-
-  <p class="hint">Ask AI about the current page</p>
-
-  <!-- Shows only if no API key is saved yet -->
-  <div id="ai-no-key-warning" style="display:none;">
-    <p style="font-size:13px; color:#dc2626; background:#fef2f2; padding:10px 12px; border-radius:8px; margin-bottom:10px;">
-      ⚠️ No API key saved. 
-      <span id="link-to-settings" style="color:#4f46e5; cursor:pointer; text-decoration:underline;">
-        Open Settings
-      </span>
-      to add your Gemini key.
-    </p>
-  </div>
-
-  <div class="add-bookmark-box">
-  <button id="btn-summarize">✨ Summarize This Page</button>
-  </div>
-
-  <div class="add-bookmark-box" style="margin-top: 10px;">
-    <input type="text" id="question-input" placeholder="Ask a question about this page..." />
-    <button id="btn-ask">💬 Ask AI</button>
-  </div>
-
-  <div id="ai-results-box">
-    <p class="placeholder">AI response will appear here...</p>
-  </div>
-
-  <div class="bookmark-actions">
-    <button id="btn-clear-chat" class="secondary-btn">🗑️ Clear Chat</button>
-  </div>
-
-</div>
-
-
-
-       <!-- HISTORY SECTION -->
-    <div id="section-history" class="section hidden">
-    <p class="hint">Pages you've scraped, plus your notes</p>  
-
-     <!-- Notes box for current page -->
-<div style="margin-bottom: 10px;">
-  <textarea
-    id="note-input"
-    placeholder="Add a personal note about this page..."
-    rows="3"
-    style="width: 100%; box-sizing: border-box; resize: vertical; font-family: inherit; font-size: 13px; padding: 8px 10px; border: 1.5px solid #e0e4ff; border-radius: 8px; color: #1e1b4b; background: #f8f9ff; outline: none;"
-  ></textarea>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-    <span id="note-save-status" style="font-size: 11px; color: #059669; min-height: 14px;"></span>
-    <button id="btn-delete-note" class="secondary-btn" style="font-size: 11px; padding: 3px 10px;">🗑️ Delete Note</button>
-  </div>
-</div>
-
-  <!-- History list -->
-  <div id="history-list">
-    <p class="placeholder">No scraping history yet.</p>
-  </div>
-
-  <div class="bookmark-actions">
-    <button id="btn-clear-history" class="secondary-btn">🗑️ Clear All History</button>
-  </div>
-  </div>
-     
-  
-  
-  
-  
-  <!-- SETTINGS BUTTON (outside all sections, at the bottom) -->
-    <!-- SETTINGS BUTTON + DARK MODE TOGGLE -->
-<div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; padding-bottom: 4px;">
-  <button id="btn-dark-mode">🌙 Dark</button>
-  <button id="btn-open-settings" class="secondary-btn" style="font-size: 12px;">
-    ⚙️ Settings
-  </button>
-</div>
     <script src="popup.js"></script>
-
-
-
-    
   </body>
 
 </html>
